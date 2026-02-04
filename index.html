@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Royal Valentine 💖</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+background:linear-gradient(135deg,#FED5CD,#FFC69E);
+overflow:hidden;
+}
+
+.hidden{display:none;}
+
+.glass{
+background:white;
+padding:30px;
+border-radius:20px;
+text-align:center;
+z-index:2;
+}
+
+img{
+width:150px;
+border-radius:15px;
+margin:10px;
+}
+
+/* Countdown */
+#countdown{font-size:90px;}
+
+/* Game */
+#game{
+display:grid;
+grid-template-columns:repeat(4,70px);
+gap:10px;
+margin-top:20px;
+}
+
+.card{
+width:70px;height:70px;
+cursor:pointer;
+perspective:1000px;
+}
+
+.card-inner{
+width:100%;height:100%;
+position:relative;
+transition:.6s;
+transform-style:preserve-3d;
+}
+
+.card.flipped .card-inner{transform:rotateY(180deg);}
+
+.card-front,.card-back{
+position:absolute;
+width:100%;height:100%;
+display:flex;
+justify-content:center;
+align-items:center;
+border-radius:10px;
+font-size:28px;
+backface-visibility:hidden;
+}
+
+.card-front{background:white;}
+.card-back{
+background:pink;
+transform:rotateY(180deg);
+}
+
+/* Buttons */
+button{
+padding:12px 30px;
+margin:10px;
+border:none;
+border-radius:30px;
+font-size:18px;
+cursor:pointer;
+}
+
+.no{position:absolute;}
+
+canvas{
+position:fixed;
+top:0;
+left:0;
+z-index:1;
+}
+</style>
+</head>
+
+<body>
+
+<audio id="bgMusic" src="https://files.catbox.moe/n6ju1c.mp3" loop></audio>
+
+<canvas id="rainCanvas"></canvas>
+
+<!-- Phase 1 -->
+<div id="phase1" class="glass">
+<div id="countdown">3</div>
+<div id="game" class="hidden"></div>
+</div>
+
+<!-- Phase 2 -->
+<div id="phase2" class="glass hidden">
+<h2>Our Moment 💖</h2>
+
+<img src="https://raw.githubusercontent.com/tanvir7338/Love-greating-card/25bc9920779da1bf8f39f0289e8f60cb8e10e683/74f49f6c-2fff-49eb-8fa1-bbcec832d70f.jpeg">
+<img src="https://raw.githubusercontent.com/tanvir7338/Love-greating-card/25bc9920779da1bf8f39f0289e8f60cb8e10e683/Screenshot_2026-02-04-19-53-24-28_40deb401b9ffe8e1df2f1cc5ba480b12.jpg">
+
+<h3>Will You Be Mine Forever?</h3>
+<button id="yesBtn">YES 💖</button>
+<button id="noBtn" class="no">NO 🙈</button>
+</div>
+
+<!-- Phase 3 -->
+<div id="phase3" class="glass hidden">
+<h2>💝🌷💌</h2>
+<p id="letterText"></p>
+</div>
+
+<script>
+
+/* Elements */
+const phase1=document.getElementById("phase1");
+const phase2=document.getElementById("phase2");
+const phase3=document.getElementById("phase3");
+
+const yesBtn=document.getElementById("yesBtn");
+const noBtn=document.getElementById("noBtn");
+
+const countdown=document.getElementById("countdown");
+const game=document.getElementById("game");
+const letterText=document.getElementById("letterText");
+
+const bgMusic=document.getElementById("bgMusic");
+
+/* Play music on first click */
+document.body.onclick=()=>bgMusic.play();
+
+/* Countdown */
+let c=3;
+const timer=setInterval(()=>{
+c--;
+if(c>0) countdown.innerText=c;
+else{
+clearInterval(timer);
+countdown.style.display="none";
+startGame();
+}
+},1000);
+
+
+/* Memory Game */
+const icons=["💖","💍","❤️","🌹","💖","💍","❤️","🌹","✨","👑","💕","💐","✨","👑","💕","💐"];
+
+let firstCard=null;
+let lock=false;
+let matched=0;
+
+function startGame(){
+game.classList.remove("hidden");
+icons.sort(()=>Math.random()-.5);
+
+icons.forEach(icon=>{
+const card=document.createElement("div");
+card.className="card";
+
+const inner=document.createElement("div");
+inner.className="card-inner";
+
+const front=document.createElement("div");
+front.className="card-front";
+front.innerText="?";
+
+const back=document.createElement("div");
+back.className="card-back";
+back.innerText=icon;
+
+inner.append(front,back);
+card.appendChild(inner);
+
+card.onclick=()=>{
+if(lock||card.classList.contains("flipped")) return;
+
+card.classList.add("flipped");
+
+if(!firstCard){
+firstCard=card;
+return;
+}
+
+lock=true;
+
+if(firstCard.querySelector(".card-back").innerText===icon){
+
+matched+=2;
+firstCard=null;
+lock=false;
+
+if(matched===icons.length){
+setTimeout(()=>{
+phase1.classList.add("hidden");
+phase2.classList.remove("hidden");
+},800);
+}
+
+}else{
+setTimeout(()=>{
+card.classList.remove("flipped");
+firstCard.classList.remove("flipped");
+firstCard=null;
+lock=false;
+},600);
+}
+
+};
+
+game.appendChild(card);
+});
+}
+
+/* NO Button Run Away */
+noBtn.onmouseover=()=>{
+noBtn.style.transform=
+`translate(${Math.random()*200-100}px,${Math.random()*80-40}px)`;
+};
+
+/* YES Button */
+yesBtn.onclick=()=>{
+phase2.classList.add("hidden");
+phase3.classList.remove("hidden");
+
+startLoveRain();
+startFireworks();
+startTyping();
+};
+
+
+/* LOVE RAIN */
+function startLoveRain(){
+const canvas=document.getElementById("rainCanvas");
+const ctx=canvas.getContext("2d");
+
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+
+const letters=["💖","❤️","💕","💗","💝"];
+const fontSize=30;
+const columns=canvas.width/fontSize;
+const drops=[];
+
+for(let x=0;x<columns;x++) drops[x]=1;
+
+function draw(){
+ctx.fillStyle="rgba(255,182,193,0.1)";
+ctx.fillRect(0,0,canvas.width,canvas.height);
+
+ctx.font=fontSize+"px Arial";
+
+for(let i=0;i<drops.length;i++){
+const text=letters[Math.floor(Math.random()*letters.length)];
+ctx.fillText(text,i*fontSize,drops[i]*fontSize);
+
+if(drops[i]*fontSize>canvas.height && Math.random()>0.95)
+drops[i]=0;
+
+drops[i]++;
+}
+
+requestAnimationFrame(draw);
+}
+draw();
+}
+
+
+/* FIREWORKS */
+function startFireworks(){
+setInterval(()=>{
+const fire=document.createElement("div");
+fire.innerText="✨";
+fire.style.position="fixed";
+fire.style.left=Math.random()*100+"%";
+fire.style.top=Math.random()*60+"%";
+fire.style.fontSize="40px";
+fire.style.animation="pop 1s forwards";
+document.body.appendChild(fire);
+
+setTimeout(()=>fire.remove(),1000);
+},300);
+}
+
+
+/* Letter Typing */
+const lines=[
+"My Dearest Jaan💕 (Butaki) ",
+"",
+"Mai bolta kam hoon,",
+"Meri khamoshi se baat samajh paogi kya?",
+"",
+"Mai sochta bohot hoon,",
+"Meri overthinking ko sambhal paogi kya?",
+"",
+"Mai short tempered hoon,",
+"Mere gusse ko jhel paogi kya?",
+"",
+"Mai nirash ho jau kabhi,",
+"Toh mujhe mana paogi kya?",
+"",
+"Mai kamyaab banna chahta hoon,",
+"Meri kamyabi ka hissa ban paogi kya?",
+"",
+"Mai udna chahta hoon,",
+"Meri udaan mein saath de paogi kya?",
+"",
+"Mai khul kar jeena chahta hoon,",
+"Bina kisi expectations mere saath reh paogi kya?",
+"",
+"Mai khone se darta hoon,",
+"Mere dar ko galat sabit kar paogi kya?",
+"",
+"Forever Yours Bachaa ♥️"
+];
+
+let lineIndex=0;
+let charIndex=0;
+
+function startTyping(){
+
+if(lineIndex>=lines.length) return;
+
+let line=lines[lineIndex];
+
+if(line===""){
+letterText.innerHTML+="<br>";
+lineIndex++;
+setTimeout(startTyping,300);
+return;
+}
+
+let interval=setInterval(()=>{
+letterText.innerHTML+=line[charIndex];
+charIndex++;
+
+if(charIndex>=line.length){
+clearInterval(interval);
+letterText.innerHTML+="<br>";
+lineIndex++;
+charIndex=0;
+setTimeout(startTyping,400);
+}
+
+},50);
+
+}
+
+</script>
+</body>
+</html>
